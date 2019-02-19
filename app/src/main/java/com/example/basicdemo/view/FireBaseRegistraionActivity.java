@@ -1,5 +1,6 @@
 package com.example.basicdemo.view;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -22,6 +23,8 @@ public class FireBaseRegistraionActivity extends AppCompatActivity  implements V
     private FirebaseAuth mAuth;
 
     private static final String TAG = "FireBaseRegistraionActivity";
+    private ProgressDialog dialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,6 +75,7 @@ public class FireBaseRegistraionActivity extends AppCompatActivity  implements V
         String name = ((EditText)findViewById(R.id.txtName)).getText().toString();
         String email = ((EditText)findViewById(R.id.txtEmail)).getText().toString();
         String pwd = ((EditText)findViewById(R.id.txtPwd)).getText().toString();
+        showProgressDialog();
 
         mAuth.createUserWithEmailAndPassword(email, pwd)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -80,17 +84,32 @@ public class FireBaseRegistraionActivity extends AppCompatActivity  implements V
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "createUserWithEmail:success");
+                            dismissProgressDialog();
                             FirebaseUser user = mAuth.getCurrentUser();
                             Toast.makeText(FireBaseRegistraionActivity.this,"Register Successful",Toast.LENGTH_LONG).show();
                             startActivity(new Intent(FireBaseRegistraionActivity.this, FireBaseLoginActivity.class));
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                            dismissProgressDialog();
                             Toast.makeText(FireBaseRegistraionActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
 
+    }
+
+    private void showProgressDialog()
+    {
+        dialog = new ProgressDialog(this);
+        dialog.setMessage("Registering, Please wait ..");
+        dialog.show();
+    }
+    private void dismissProgressDialog()
+    {
+        if (dialog!=null && dialog.isShowing()) {
+            dialog.dismiss();
+        }
     }
 }

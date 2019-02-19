@@ -1,6 +1,8 @@
 package com.example.basicdemo.view;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -21,6 +23,8 @@ public class FireBaseLoginActivity extends AppCompatActivity implements View.OnC
     private FirebaseAuth mAuth;
 
     private static final String TAG = "FireBaseRegistraionActivity";
+    private ProgressDialog dialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +67,7 @@ public class FireBaseLoginActivity extends AppCompatActivity implements View.OnC
 
         String email = ((EditText)findViewById(R.id.txtEmail)).getText().toString();
         String pwd = ((EditText)findViewById(R.id.txtPwd)).getText().toString();
+        showProgressDialog();
 
         mAuth.signInWithEmailAndPassword(email, pwd)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -72,11 +77,13 @@ public class FireBaseLoginActivity extends AppCompatActivity implements View.OnC
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
+                            dismissProgressDialog();
                             startActivity(new Intent(FireBaseLoginActivity.this, FirebaseDataBaseOperationsActiivty.class));
 
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
+                            dismissProgressDialog();
                             Toast.makeText(FireBaseLoginActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
 
@@ -86,6 +93,19 @@ public class FireBaseLoginActivity extends AppCompatActivity implements View.OnC
                     }
                 });
 
+    }
+
+    private void showProgressDialog()
+    {
+        dialog = new ProgressDialog(this);
+        dialog.setMessage("logging in, Please wait ..");
+        dialog.show();
+    }
+    private void dismissProgressDialog()
+    {
+        if (dialog!=null && dialog.isShowing()) {
+            dialog.dismiss();
+        }
     }
 }
 

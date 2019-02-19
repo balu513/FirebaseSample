@@ -1,5 +1,6 @@
 package com.example.basicdemo.view;
 
+import android.app.ProgressDialog;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -10,7 +11,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.basicdemo.R;
@@ -45,6 +45,7 @@ public class FirebaseDataBaseOperationsActiivty extends AppCompatActivity{
     private RecyclerView recylerview;
     final List<Player> list = new ArrayList<Player>();
     private PPlayersAdapter adapter;
+    private ProgressDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +65,7 @@ public class FirebaseDataBaseOperationsActiivty extends AppCompatActivity{
 
          database = FirebaseDatabase.getInstance();
          myRef = database.getReference("CricketPlayer3");
-       query = myRef.child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+         query = myRef.child(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
         ((Button)findViewById(R.id.btnAddPlayer)).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -79,16 +80,17 @@ public class FirebaseDataBaseOperationsActiivty extends AppCompatActivity{
     @Override
     protected void onStart() {
         super.onStart();
-       getPlayersListFromFireBase();
-        getPlayersOfAllUsers();
+        getPlayersListFromFireBase();
+        //getPlayersOfAllUsers();
 
     }
 
     private void addPlayer() {
+        showProgressDialog();
         final int id = new Random().nextInt(1000);
         final String name = ((EditText)findViewById(R.id.txtPlayerName)).getText().toString();
         final String country = ((EditText)findViewById(R.id.txtCountry)).getText().toString();
-        myRef.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).push().setValue(new Player(id,name,country));
+        query.push().setValue(new Player(id,name,country));
     }
 
     /**
@@ -98,7 +100,7 @@ public class FirebaseDataBaseOperationsActiivty extends AppCompatActivity{
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
+                dismissProgressDialog();
                 if (dataSnapshot.exists()) {
                     list.clear();
                     // Hashmap<user, hashmap>
@@ -141,10 +143,10 @@ public class FirebaseDataBaseOperationsActiivty extends AppCompatActivity{
     // Get only loggedIn user data
     private void getPlayersListFromFireBase()
     {
-        final List<Player> list  = new ArrayList<Player>();
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                dismissProgressDialog();
                 if (dataSnapshot.exists()) {
                     list.clear();
 
@@ -221,6 +223,18 @@ public class FirebaseDataBaseOperationsActiivty extends AppCompatActivity{
             Log.d(TAG,"email verified: "+emailVerified);
             Log.d(TAG,"udi: "+uid);
 
+        }
+    }
+    private void showProgressDialog()
+    {
+        dialog = new ProgressDialog(this);
+        dialog.setMessage("Adding player, Please wait .. ");
+        dialog.show();
+    }
+    private void dismissProgressDialog()
+    {
+        if (dialog!=null && dialog.isShowing()) {
+            dialog.dismiss();
         }
     }
 
