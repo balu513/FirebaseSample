@@ -4,6 +4,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -26,6 +28,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -39,13 +42,18 @@ public class FirebaseDataBaseOperationsActiivty extends AppCompatActivity{
     private DatabaseReference myRef;
     private FirebaseDatabase database;
     private DatabaseReference query;
-    private ListView listView;
+    private RecyclerView recylerview;
+    final List<Player> list = new ArrayList<Player>();
+    private PPlayersAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        listView = (ListView) findViewById(R.id.listviewPlayers);
+        recylerview = (RecyclerView) findViewById(R.id.listviewPlayers);
+        recylerview.setLayoutManager(new LinearLayoutManager(this));
+         adapter = new PPlayersAdapter(this, list);
+        recylerview.setAdapter(adapter);
 
         FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
@@ -55,7 +63,7 @@ public class FirebaseDataBaseOperationsActiivty extends AppCompatActivity{
         getToken();
 
          database = FirebaseDatabase.getInstance();
-         myRef = database.getReference("CricketPlayer");
+         myRef = database.getReference("CricketPlayer3");
        query = myRef.child(FirebaseAuth.getInstance().getCurrentUser().getUid());
 
         ((Button)findViewById(R.id.btnAddPlayer)).setOnClickListener(new View.OnClickListener() {
@@ -71,7 +79,7 @@ public class FirebaseDataBaseOperationsActiivty extends AppCompatActivity{
     @Override
     protected void onStart() {
         super.onStart();
-        getPlayersListFromFireBase();
+       getPlayersListFromFireBase();
         getPlayersOfAllUsers();
 
     }
@@ -87,7 +95,6 @@ public class FirebaseDataBaseOperationsActiivty extends AppCompatActivity{
      * Get all records of all usrers who are all registed to this app
      */
     private void getPlayersOfAllUsers() {
-        final List<Player> list = new ArrayList<Player>();
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -155,6 +162,7 @@ public class FirebaseDataBaseOperationsActiivty extends AppCompatActivity{
                         list.add(new Player(id,name,country));
                     }
                 }
+                refreshRecylerView();
                 Log.d(TAG, "Size: "+list.size()+"  List Players: "+list);
 
             }
@@ -164,6 +172,12 @@ public class FirebaseDataBaseOperationsActiivty extends AppCompatActivity{
         });
 
 
+
+    }
+
+    private void refreshRecylerView() {
+        Collections.sort(list);
+        adapter.notifyDataSetChanged();
 
     }
 
